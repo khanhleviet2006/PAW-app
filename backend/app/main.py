@@ -334,12 +334,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         publish(session, farm_id, "measurement_session.created", session_id=body.id)
         return {"id": body.id, "measurement_phase": "PRE_PAW"}
 
-    def read_snapshot(farm_id, include_points=False):
+    def read_snapshot(farm_id, include_points=False, previous=None):
         with sessions.begin() as session:
             data = snapshot(session, farm_id, config, clock())
             if include_points:
                 if data["farm"]["source"] != "sensor":
                     raise HTTPException(409, "Bản đồ GPS thực không sử dụng dữ liệu mô phỏng")
+                if previous is not None and previous["cursor"] == data["cursor"]:
+                    # Status can age between events; immutable GPS history cannot change.
+                    data["map_points"] = previous["map_points"]
+                    return data
                 return field_payload(session, data)
             return data
 
@@ -536,7 +540,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     yield ": heartbeat\n\n"
                     heartbeat = 0
                 await asyncio.sleep(config.sse_poll_seconds)
-                data = await asyncio.to_thread(read_snapshot, farm_id, include_map_points)
+                data = await asyncio.to_thread(read_snapshot, farm_id, include_map_points, data)
 
         return StreamingResponse(
             stream(),
