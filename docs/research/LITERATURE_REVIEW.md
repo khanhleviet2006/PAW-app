@@ -1,6 +1,6 @@
 # Tổng quan nội suy cho PAW
 
-Tìm ngày 25/11/2026 theo tiêu đề công trình nền tảng ở Crossref, truy ngược danh mục của Li & Heap (2011), bổ sung soil moisture + wireless sensor networks, complex terrain, solar radiation và space-time. Đối chiếu DOI, tác giả, tên nguồn. Đọc toàn văn Yao qua XML của PLOS; các bài khác phân biệt abstract và metadata. Loại nhận xét phản biện, phần mềm không liên quan và kết quả trùng. Đây là tìm kiếm có cấu trúc, phạm vi truy cập chưa bao phủ toàn bộ các cơ sở dữ liệu thương mại.
+Tìm ngày 25/11/2026 theo tiêu đề công trình nền tảng ở Crossref, truy ngược danh mục của Li & Heap (2011), bổ sung soil moisture + wireless sensor networks, complex terrain, solar radiation và space-time. Đối chiếu DOI, tác giả, tên nguồn. Đọc toàn văn qua PLOS, MDPI và Climate Research. Với các tài liệu khác, ghi riêng abstract hoặc metadata. Loại nhận xét phản biện, phần mềm không liên quan và kết quả trùng. Đây là tìm kiếm có cấu trúc, phạm vi truy cập chưa bao phủ toàn bộ các cơ sở dữ liệu thương mại.
 
 Các dòng metadata chỉ hỗ trợ truy vết thư mục. Các trường thiếu trong CSV ghi CXM (chưa xác minh); không đồng nghĩa tác giả không báo cáo. Công thức triển khai và giả định nằm ở METHOD_COMPARISON.md.
 
@@ -10,7 +10,7 @@ Xueling Yao, Bojie Fu, Yihe Lü, Feixiang Sun, Shuai Wang, Min Liu (2013). Toàn
 
 ## An Extended Kriging Method to Interpolate Near-Surface Soil Moisture Data Measured by Wireless Sensor Networks
 
-Jialin Zhang, Xiuhong Li, Rongjin Yang, Qiang Liu, Long Zhao, Baocheng Dou (2017). Abstract. WSN HiWATER, độ ẩm bề mặt theo ngày, 10/6–15/7/2012; ảnh viễn thám. OK, cokriging, KED, Extended Kriging trong không gian vị trí–phổ. Abstract báo Extended Kriging có RMSE nhỏ nhất, không nêu trị số hoặc bố trí holdout. Ảnh cung cấp tín hiệu hữu ích trong nghiên cứu. PAW chỉ thử khi có ảnh định lượng đồng bộ ngày và đủ vị trí độc lập; ảnh nền RGB có giấy phép chưa đủ. [DOI](https://doi.org/10.3390/s17061390)
+Jialin Zhang, Xiuhong Li, Rongjin Yang, Qiang Liu, Long Zhao, Baocheng Dou (2017). Toàn văn. 48 node WATERNET trên ruộng ngô khoảng 4.5 × 5 km, 36–45 node hữu dụng/ngày. Lấy mẫu mỗi 5 phút, tính trung bình ngày ở 10 cm. OK, Co-kriging, KED, Extended Kriging. NDVI, albedo và ảnh nguồn cho variogram. Leave-one-out, 10/07/2012: RMSE (%) Extended Kriging 2.4185, OK 2.6218, Co-kriging 3.0110, KED 3.1686. Lệch thang không gian giữa đầu dò và pixel 30 m, sai số lắp đặt độ sâu, bão hòa và hiệu chuẩn ảnh. Chỉ thử covariate đồng bộ khi thắng kiểm định theo vị trí. [DOI](https://doi.org/10.3390/s17061390)
 
 ## A two-dimensional interpolation function for irregularly-spaced data
 
@@ -47,3 +47,7 @@ C.A. Schloeder, N.E. Zimmerman, M.J. Jacobs (2001). Abstract. 46 điểm trên 1
 ## A comparison of kriging, cubic splines and classification for predicting soil properties from sample information
 
 M. VOLTZ, R. WEBSTER (1990). Abstract. Hàm lượng sét tầng mặt ở Sandford St Martin và Yenne, địa mạo tương phản. Trung bình theo lớp, OK, spline bậc ba và kriging trong lớp. Hiệu năng thay đổi theo ranh giới; spline theo được chuyển tiếp đột ngột nhưng dao động quá mạnh ở phần khác. Mask lô và kiểm tra biên thổ nhưỡng. Lô hành chính không tự chứng minh đồng nhất đất. [DOI](https://doi.org/10.1111/j.1365-2389.1990.tb00080.x)
+
+## Comparative analysis of interpolation methods in the middle Ebro Valley (Spain): application to annual precipitation and temperature
+
+Sergio M. Vicente-Serrano, M. Ángel Saz-Sánchez, José M. Cuadrat (2003). 99 trạm mưa, 61 trạm nhiệt. Chuỗi nhiệt >15 năm. Tọa độ UTM 30N. IDW, spline, kriging, hồi quy theo biến địa lý/địa hình và các phương pháp kết hợp. Chia trạm ngẫu nhiên 70/30. Bảng 7, nhiệt độ trung bình năm: RMSE (°C) IDW p=2 0.56, OK 0.60, hồi quy 0.58. Bias tương ứng −0.32, −0.28, −0.06 °C. Lựa chọn thay đổi theo bias và RMSE. Kiểm tra DEM theo từng phiên đo PAW; trung bình năm khó đại diện cho 20 phút. [DOI](https://doi.org/10.3354/cr024161)
