@@ -29,6 +29,7 @@ def main():
     if args.interval < 1:
         parser.error("interval >= 1 giây")
     settings = Settings()
+    settings.require_postgresql()
     engine, sessions = database(settings)
     try:
         while True:

@@ -51,6 +51,10 @@ class Settings(BaseSettings):
     offline_after_seconds: int = Field(default=1800, gt=0)
     sse_poll_seconds: float = Field(default=1, ge=0.05, le=30)
 
+    def require_postgresql(self):
+        if make_url(self.database_url).drivername != "postgresql+psycopg":
+            raise ValueError("PAW_DATABASE_URL cần dùng postgresql+psycopg.")
+
     @field_validator("admin_token")
     @classmethod
     def valid_token(cls, value: SecretStr) -> SecretStr:

@@ -6,6 +6,7 @@ import sys
 import time
 import webbrowser
 from pathlib import Path
+from urllib.error import HTTPError
 from urllib.request import urlopen
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -13,16 +14,16 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 def main():
     from sqlalchemy import text
-    from sqlalchemy.engine import make_url
 
     from app.config import Settings
     from app.db import database, schema_current
+    from app.maps import document
 
     settings = Settings()
-    if make_url(settings.database_url).drivername != "postgresql+psycopg":
-        raise ValueError("PAW_DATABASE_URL cần dùng postgresql+psycopg.")
+    settings.require_postgresql()
     if not settings.frontend_dist or not (settings.frontend_dist / "index.html").is_file():
         raise ValueError("Chưa có frontend/dist. Chạy npm ci và npm run build trong frontend.")
+    document()  # Import Leafmap and check that Folium generates the offline document.
     engine, _ = database(settings)
     try:
         with engine.connect() as c:
@@ -54,7 +55,15 @@ def main():
             try:
                 with urlopen(base + "/ready", timeout=1) as response:
                     if response.status == 200:
-                        webbrowser.open(base + "/map")
+                        try:
+                            with urlopen(base + "/v1/viewer-bootstrap", timeout=3):
+                                webbrowser.open(base + "/map")
+                        except HTTPError as exc:
+                            print(
+                                f"PAW: viewer HTTP {exc.code}. Kiểm tra farm, IP và origin. "
+                                f"API quản trị đang chạy tại {base}/docs.",
+                                flush=True,
+                            )
                         return proc.wait()
             except OSError:
                 time.sleep(0.3)
