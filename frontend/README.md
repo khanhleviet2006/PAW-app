@@ -2,7 +2,7 @@
 
 # PAW — Giám sát môi trường trước tưới
 
-**Bản đồ người dùng hiện hành: `/map`.** `/` và `/field-map` chuyển về cùng màn hình này. Chỉ dùng MapLibre GL JS + MapCN và một bộ ảnh vệ tinh được lưu tại máy chủ PAW. Không còn engine Google, Leaflet hoặc sơ đồ giả trong giao diện/bundle.
+**Bản đồ người dùng hiện hành: `/map`.** `/` và `/field-map` chuyển về cùng màn hình này. FastAPI tạo tài liệu Leafmap qua backend Folium. Trình duyệt nạp bộ ảnh vệ tinh nội bộ và các lớp GPS, raster theo phiên. Xem [hướng dẫn bản hiện tại](../README.md).
 
 Khi thiếu ảnh hiển thị đúng: **“Chưa cài đặt dữ liệu ảnh vệ tinh khu vực”**. Không có ảnh khu đất thật được cung cấp trong repository. Người quản trị nhập GeoTIFF/MBTiles và chọn bộ ảnh trong cấu hình backend; người dùng chỉ xem số đo/GPS/heatmap.
 

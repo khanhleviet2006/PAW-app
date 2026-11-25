@@ -6,7 +6,7 @@ Backend FastAPI + SQLAlchemy cho cột cảm biến có thể rút/cắm ở nhi
 
 ## Bản đồ GPS offline mới
 
-Đã bổ sung API điểm đo lịch sử, catalog/tile ảnh nội bộ và tùy chọn phục vụ Vite build. Xem [hướng dẫn MapLibre + MapCN + GeoTIFF offline](docs/OFFLINE_MAP.md). Chưa có ảnh vệ tinh được cung cấp để nhập vào máy chủ.
+Đã bổ sung API điểm đo lịch sử, catalog/tile ảnh nội bộ và tùy chọn phục vụ Vite build. Xem [quy trình nhập ảnh GeoTIFF offline](docs/OFFLINE_MAP.md). Chưa có ảnh vệ tinh được cung cấp để nhập vào máy chủ.
 
 ## Bản đồ người dùng thống nhất — 19/11/2026
 
@@ -17,11 +17,12 @@ Bản đồ tại `/map`; `/` và `/field-map` chuyển về cùng trang. Quản
 Cài Python **3.12 hoặc 3.13** từ python.org, chọn “Add Python to PATH”. Mở PowerShell trong thư mục muốn lưu dự án:
 
 ```powershell
-git clone https://github.com/khanhleviet2006/PAW-Backend.git
-Set-Location PAW-Backend
+git clone --branch upgrade/leafmap-spatial https://github.com/khanhleviet2006/PAW-app.git
+Set-Location PAW-app/backend
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 .\.venv\Scripts\python.exe scripts/setup_env.py
+notepad .env
 .\.venv\Scripts\python.exe -m alembic upgrade head
 .\.venv\Scripts\python.exe -m uvicorn app.asgi:app --host 127.0.0.1 --port 8000
 ```
@@ -32,12 +33,12 @@ Không cần activate venv hoặc đổi ExecutionPolicy. Nếu dùng Python 3.1
 - Swagger: http://127.0.0.1:8000/docs.
 - Dừng server: `Ctrl+C`. Nếu cổng 8000 đang được dùng, chọn cổng khác và truyền `--base-url` tương ứng cho simulator.
 - `.env` được tạo **một lần** với khóa ngẫu nhiên; không commit/chia sẻ `.env` hoặc `*.secrets.json`.
-- Cách này dùng SQLite `paw.db` tại máy bạn. Chạy migration trước, API không tự tạo bảng hoặc tự seed dữ liệu.
+- Quản trị viên đặt URL PostgreSQL và quyền viewer trong .env theo [hướng dẫn triển khai](../README.md). Chạy migration trước, API không tự tạo bảng hoặc tự seed dữ liệu.
 
 Mở PowerShell thứ hai để lưu cảnh báo offline/quá hạn ngay cả khi không có gói tin mới:
 
 ```powershell
-Set-Location 'C:\duong-dan\PAW-Backend'
+Set-Location 'C:\duong-dan\PAW-app\backend'
 .\.venv\Scripts\python.exe -m app.monitor --interval 15
 ```
 
@@ -131,7 +132,7 @@ Linux/macOS: thay `.\.venv\Scripts\python.exe` bằng `.venv/bin/python`. Có `u
 
 ## Tình trạng tích hợp hiện hành
 
-Frontend có một màn hình `/map` dùng MapLibre + MapCN, đọc GPS/lịch sử/SSE và một bộ ảnh active từ backend. Hai đường dẫn `/` và `/field-map` chuyển về cùng màn hình. Quản trị viên cấu hình ảnh qua PAW_ACTIVE_IMAGERY_IDS; người dùng không có công cụ nhập hoặc đổi nền.
+Frontend có một màn hình `/map` dùng Leafmap, đọc GPS/lịch sử/SSE và một bộ ảnh active từ backend. Hai đường dẫn `/` và `/field-map` chuyển về cùng màn hình. Quản trị viên cấu hình ảnh qua PAW_ACTIVE_IMAGERY_IDS; người dùng không có công cụ nhập hoặc đổi nền.
 
 Giữ nguyên domain, dữ liệu, ingest/ACK và các chức năng history/alerts/simulator hiện có. Chưa có ảnh vệ tinh khu đất hoặc thiết bị thật để nghiệm thu ngoài thực địa. Backend chạy trực tiếp bằng Python và kết nối PostgreSQL sẵn có; cập nhật này không yêu cầu Docker/WSL hay migration mới. Xem docs/USER_MAP_UPDATE.md để thay file cục bộ có backup, không dùng GitHub.
 

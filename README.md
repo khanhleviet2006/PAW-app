@@ -1,13 +1,13 @@
 # PAW — Ứng dụng quan trắc đồi chè
 
-Một lần clone cung cấp cả giao diện React, TypeScript, Vite trong `frontend/` và API FastAPI, migrations Alembic trong `backend/`. Khi vận hành, FastAPI phục vụ cả giao diện và API ở cùng địa chỉ. MapLibre/MapCN hiển thị ảnh vệ tinh đã cài nội bộ, điểm GPS, thông số và heatmap. Mã được hợp nhất từ PAW-Frontend `e303219` và PAW-Backend `c7cecf4`.
+Một lần clone cung cấp cả giao diện React, TypeScript, Vite trong `frontend/` và API FastAPI, migrations Alembic trong `backend/`. Khi vận hành, FastAPI phục vụ cả giao diện và API ở cùng địa chỉ. Leafmap hiển thị ảnh vệ tinh đã cài nội bộ, GPS và raster nội suy theo phiên đo. Mã được hợp nhất từ PAW-Frontend `e303219` và PAW-Backend `c7cecf4`.
 
 ## Cài lần đầu trên Windows (quản trị viên)
 
 Cài Git, Python 3.12 64-bit, Node.js 24.15 trở lên thuộc dòng 24 và PostgreSQL. Trong PowerShell:
 
 ```powershell
-git clone https://github.com/khanhleviet2006/PAW-app.git
+git clone --branch upgrade/leafmap-spatial https://github.com/khanhleviet2006/PAW-app.git
 cd PAW-app
 cd frontend
 npm ci
@@ -29,7 +29,7 @@ PAW_VIEWER_NETWORKS=["127.0.0.1/32"]
 PAW_VIEWER_ORIGINS=["http://127.0.0.1:8000"]
 ```
 
-Có thể giữ URL SQLite sẵn trong mẫu để chạy thử trên máy riêng. Khi cập nhật hệ thống đang dùng, sao lưu database và giữ cấu hình, khóa, thư mục ảnh hiện tại. Chạy lệnh sau từ `backend` sau khi kiểm tra đúng URL:
+Nếu mật khẩu có ký tự đặc biệt, dùng URL dạng `postgresql+psycopg://paw@127.0.0.1:5432/paw` và đặt mật khẩu gốc trong biến `PAW_DB_PASSWORD` ở máy chủ. Khi cập nhật hệ thống đang dùng, sao lưu database và giữ cấu hình, khóa, thư mục ảnh hiện tại. Chạy lệnh sau từ `backend` sau khi kiểm tra đúng URL:
 
 ```powershell
 .\.venv\Scripts\python.exe -m alembic upgrade head
@@ -49,7 +49,7 @@ Mở [trang kiểm tra database](http://127.0.0.1:8000/ready). Nếu database m�
 ## Sử dụng hằng ngày
 
 1. Khởi động máy chủ bằng `Start-PAW.cmd` ở gốc dự án. Mở [bản đồ trên máy chủ](http://127.0.0.1:8000/map) hoặc địa chỉ LAN đã bàn giao trên điện thoại.
-2. Kéo, zoom và nhấn điểm GPS để xem số đo. Trong **Thông số hiển thị**, chọn chỉ số/độ sâu và bật hoặc tắt heatmap.
+2. Kéo, zoom và nhấn điểm GPS để xem số đo. Trong **Thông số hiển thị**, chọn chỉ số và độ sâu. Bật **Hiển thị heatmap** để xem bề mặt ước tính của phiên mới nhất khi đủ vị trí hợp lệ. Nhãn dưới bản đồ cho biết đơn vị, thời điểm và số vị trí đóng góp.
 3. Khi nhận số đo ở vị trí mới, bản đồ bổ sung điểm và giữ lịch sử. Khi mất mạng, trang đang mở giữ các điểm đã tải và tự đồng bộ lại. Nếu thiếu ảnh, trang hiện “Chưa cài đặt dữ liệu ảnh vệ tinh khu vực”.
 4. Nếu chưa được cấp quyền, quản trị viên kiểm tra mã farm, IP và origin. Nếu máy chủ không khởi động, kiểm tra thư mục dist, cấu hình database và migration. Dừng máy chủ bằng Ctrl+C.
 
@@ -57,4 +57,4 @@ Mở [trang kiểm tra database](http://127.0.0.1:8000/ready). Nếu database m�
 
 Trong frontend chạy `npm run lint`, `npm test`, `npm run build`. Để chạy E2E, chạy `npx playwright install chromium` rồi `npm run test:e2e`. Trong backend cài `requirements-dev.txt` vào venv, rồi chạy `.\.venv\Scripts\python.exe -m pytest -q`. SQLite thử nghiệm được tạo riêng. Nếu đặt TEST_DATABASE_URL, chỉ trỏ tới database thử chuyên dụng có tên chứa paw_test vì fixture tạo lại các bảng. Xem cách chạy E2E tích hợp với dữ liệu và ảnh thử trong [hướng dẫn offline](backend/docs/ZERO_INTERACTION_STARTUP.md).
 
-Kết quả kiểm tra bản hợp nhất ngày 25/11/2026: production build và lint đạt, 59 bài frontend đạt, 42 bài backend đạt trên từng database SQLite và PostgreSQL. Alembic nâng cấp được database PostgreSQL mới. Có 12 bài E2E điều hướng và 4 bài tích hợp FastAPI với Chromium trên kích thước desktop/mobile đạt. Bài tích hợp chạy bản build thật, kiểm tra GPS, heatmap, tự nối lại, giữ điểm cũ và trường hợp thiếu ảnh. Kiểm thử dùng dữ liệu tạm trên Linux; bước nhấp launcher trên Windows và phần cứng tại hiện trường cần nghiệm thu khi bàn giao.
+Xem [kiến trúc, ERD, kết quả kiểm thử, benchmark và xử lý lỗi PostgreSQL](docs/UPGRADE.md), [cơ sở nghiên cứu](docs/research/LITERATURE_REVIEW.md) và [quy tắc nội suy](docs/research/SPATIAL_INTERPOLATION.md).
