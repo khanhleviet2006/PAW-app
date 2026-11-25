@@ -3,7 +3,22 @@ name = "paw-backend"
 version = "0.1.0"
 description = "PAW mobile GPS sensor backend"
 requires-python = ">=3.12"
-dependencies = ["fastapi>=0.121,<1", "uvicorn[standard]>=0.34,<1", "sqlalchemy>=2.0.36,<3", "alembic>=1.14,<2", "pydantic-settings>=2.7,<3", "psycopg[binary]>=3.2,<4", "shapely>=2.0,<3", "httpx>=0.28,<1", "python-dotenv>=1,<2"]
+dependencies = [
+    "fastapi>=0.121,<1",
+    "uvicorn[standard]>=0.34,<1",
+    "sqlalchemy>=2.0.36,<3",
+    "alembic>=1.14,<2",
+    "pydantic-settings>=2.7,<3",
+    "psycopg[binary]>=3.2,<4",
+    "shapely>=2.0,<3",
+    "httpx>=0.28,<1",
+    "python-dotenv>=1,<2",
+    "leafmap>=0.64.7",
+    "scipy>=1.18.1",
+    "pyproj>=3.8.0",
+    "rasterio>=1.5.2",
+    "pillow>=13.0.0",
+]
 
 [project.optional-dependencies]
 imagery = [
