@@ -112,7 +112,7 @@ class Measurement(Base):
     metric: Mapped[str] = mapped_column(String(40))
     unit: Mapped[str] = mapped_column(String(12))
     depth_cm: Mapped[float | None] = mapped_column(Float)
-    value: Mapped[float] = mapped_column(Float)
+    value: Mapped[float | None] = mapped_column(Float)
     calibrated: Mapped[bool] = mapped_column()
     quality: Mapped[str] = mapped_column(String(30))
     phase: Mapped[str] = mapped_column(String(12), default="UNKNOWN")

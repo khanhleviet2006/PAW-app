@@ -49,5 +49,5 @@ export function selectPoint(points: Points, id: string): MeasurePoint | undefine
   return points.features.find((p) => p.properties.id === id)
 }
 export function displayReading(reading: Reading) {
-  return `${reading.value.toLocaleString('vi-VN')} ${reading.unit} · ${new Date(reading.observed_at).toLocaleString('vi-VN')}`
+  return `${reading.value?.toLocaleString('vi-VN') ?? 'Thiếu số đo'} ${reading.unit} · ${new Date(reading.observed_at).toLocaleString('vi-VN')}`
 }

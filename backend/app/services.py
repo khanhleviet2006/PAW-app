@@ -167,7 +167,7 @@ def ingest(
         elif not sensor.calibrated:
             quality = "uncalibrated"
         low, high = BOUNDS[sensor.metric]
-        if sensor.unit != "raw" and not low <= reading.value <= high:
+        if reading.value is None or (sensor.unit != "raw" and not low <= reading.value <= high):
             quality = "invalid"
         measure_session = (
             require(session, m.MeasurementSession, reading.session_id)
@@ -384,7 +384,7 @@ def snapshot(session: Session, farm_id: str, settings: Settings, current: dateti
         elif (current - utc(row.observed_at)).total_seconds() > node.interval_seconds * 2:
             status = "stale"
         elif row.quality == "valid":
-            low, high = farm.thresholds[row.metric]
+            low, high = farm.thresholds.get(row.metric, BOUNDS[row.metric])
             status = "warning" if row.value < low or row.value > high else "normal"
         item = {**measurement_json(row), "status": status}
         latest_json.append(item)

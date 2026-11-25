@@ -10,7 +10,7 @@ export type Reading = {
   metric: Metric
   unit: string
   depth_cm: number | null
-  value: number
+  value: number | null
   quality: string
   observed_at: string
   received_at: string

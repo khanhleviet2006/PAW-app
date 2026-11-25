@@ -5,13 +5,14 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, FiniteFloat, m
 from shapely.geometry import shape
 
 Id = Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,79}$")]
-Metric = Literal["air_temperature", "air_humidity", "soil_moisture", "soil_ph"]
-UNITS = {"air_temperature": "°C", "air_humidity": "%RH", "soil_moisture": "%", "soil_ph": "pH"}
+Metric = Literal["air_temperature", "air_humidity", "soil_moisture", "soil_ph", "solar_radiation"]
+UNITS = {"air_temperature": "°C", "air_humidity": "%RH", "soil_moisture": "%", "soil_ph": "pH", "solar_radiation": "W/m²"}
 BOUNDS = {
     "air_temperature": (-50, 80),
     "air_humidity": (0, 100),
     "soil_moisture": (0, 100),
     "soil_ph": (0, 14),
+    "solar_radiation": (0, 2000),
 }
 DEFAULT_THRESHOLDS = {
     "air_temperature": [18, 32],
@@ -70,7 +71,7 @@ class SensorCreate(Payload):
     metric: Metric
     depth_cm: FiniteFloat | None = Field(default=None, ge=0, le=300)
     calibrated: bool = False
-    unit: Literal["°C", "%RH", "%", "pH", "raw"] | None = None
+    unit: Literal["°C", "%RH", "%", "pH", "W/m²", "raw"] | None = None
 
     @model_validator(mode="after")
     def depth(self):
@@ -80,7 +81,7 @@ class SensorCreate(Payload):
             raise ValueError("Đơn vị không phù hợp chỉ tiêu")
         if self.metric.startswith("soil_") and self.depth_cm is None:
             raise ValueError("Đầu dò đất phải khai báo độ sâu")
-        if self.metric.startswith("air_") and self.depth_cm is not None:
+        if not self.metric.startswith("soil_") and self.depth_cm is not None:
             raise ValueError("Cảm biến không khí không có độ sâu đất")
         return self
 
@@ -94,7 +95,7 @@ class PositionInput(Payload):
 
 class ReadingInput(Payload):
     sensor_id: Id
-    value: FiniteFloat
+    value: FiniteFloat | None
     observed_at: AwareDatetime
     deployment_id: Id | None = None
     session_id: Id | None = None

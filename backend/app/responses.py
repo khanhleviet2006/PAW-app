@@ -34,9 +34,9 @@ class MeasurementOut(Payload):
     plot_id: str | None
     session_id: str | None
     metric: Metric
-    unit: Literal["°C", "%RH", "%", "pH", "raw"]
+    unit: Literal["°C", "%RH", "%", "pH", "W/m²", "raw"]
     depth_cm: float | None
-    value: float
+    value: float | None
     quality: Literal["valid", "moving", "stabilizing", "uncalibrated", "invalid"]
     calibrated: bool
     measurement_phase: Literal["PRE_PAW", "UNKNOWN"]
@@ -87,7 +87,7 @@ class SensorOut(Payload):
     id: str
     node_id: str
     metric: Metric
-    unit: Literal["°C", "%RH", "%", "pH", "raw"]
+    unit: Literal["°C", "%RH", "%", "pH", "W/m²", "raw"]
     depth_cm: float | None
     calibrated: bool
 
