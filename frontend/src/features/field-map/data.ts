@@ -1,5 +1,4 @@
-import type { Metric } from '../../types/domain'
-import type { MeasurePoint, Points, Reading, Snapshot } from './types'
+import type { MeasurePoint, Points, Reading } from './types'
 export const EMPTY: Points = { type: 'FeatureCollection', features: [] }
 export function mergePoints(old: Points, incoming: Points): Points {
   const records = new Map(old.features.map((f) => [f.properties.id, f]))
@@ -16,7 +15,7 @@ export function mergePoints(old: Points, incoming: Points): Points {
   }
   return { type: 'FeatureCollection', features: [...records.values()] }
 }
-export function filterPoints(points: Points, metric: Metric, depth: string): Points {
+export function filterPoints(points: Points, metric: string, depth: string): Points {
   return {
     ...points,
     features: points.features.filter(
@@ -24,25 +23,6 @@ export function filterPoints(points: Points, metric: Metric, depth: string): Poi
         f.properties.metric === metric &&
         (!metric.startsWith('soil_') || String(f.properties.depth_cm) === depth),
     ),
-  }
-}
-export function currentHeat(snapshot: Snapshot, metric: Metric, depth: string): Points {
-  return {
-    type: 'FeatureCollection',
-    features: snapshot.heat_points
-      .filter(
-        (p) =>
-          p.metric === metric &&
-          (!metric.startsWith('soil_') || String(p.depth_cm) === depth) &&
-          p.source === 'sensor' &&
-          p.quality === 'valid',
-      )
-      .map((p) => ({
-        type: 'Feature',
-        id: p.id,
-        geometry: { type: 'Point', coordinates: [p.longitude, p.latitude] },
-        properties: p,
-      })),
   }
 }
 export function selectPoint(points: Points, id: string): MeasurePoint | undefined {

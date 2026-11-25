@@ -61,3 +61,33 @@ def test_null_is_stored_and_never_interpolated(env):
     with env["app"].state.sessions() as s:
         row = s.query(m.Measurement).one()
         assert row.value is None and row.quality == "invalid"
+
+
+def test_structured_variogram_reproduces_measured_sites():
+    x = np.array([(i, j) for i in range(5) for j in range(5)], dtype=float)
+    y = np.sin(x[:, 0] / 4) + 0.3 * x[:, 1]
+    for family in ("spherical", "exponential", "gaussian"):
+        estimated, variance = kriging(x, y, x, family)
+        assert np.allclose(estimated, y)
+        assert np.allclose(variance, 0, atol=1e-7)
+
+
+def test_missing_values_do_not_create_sites_or_change_estimates():
+    missing = ((108.001, 11.001, None, 2.0), (108.0012, 11.001, float("nan"), 2.0))
+    result = raster(SCOPE, GEOMETRY, SAMPLES + missing, Policy())
+    assert result["sites"] == 3
+    assert result["image"] == raster(SCOPE, GEOMETRY, SAMPLES, Policy())["image"]
+
+
+def test_connection_password_is_encoded_once():
+    from sqlalchemy.engine import make_url
+
+    from app.config import Settings
+
+    cfg = Settings(
+        admin_token="x" * 36,
+        database_url="postgresql://account@localhost/paw_test",
+        db_password="a@:b%25",
+    )
+    assert make_url(cfg.database_url).password == "a@:b%25"
+    assert make_url(cfg.database_url).drivername == "postgresql+psycopg"

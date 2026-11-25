@@ -1,4 +1,5 @@
 """Preserve unavailable measurements as SQL NULL."""
+
 from alembic import op
 import sqlalchemy as sa
 
@@ -14,7 +15,13 @@ def upgrade():
 
 
 def downgrade():
-    if op.get_bind().execute(sa.text("SELECT 1 FROM measurements WHERE value IS NULL LIMIT 1")).first():
-        raise RuntimeError("Restore a pre-upgrade backup: existing NULL readings must be preserved.")
+    if (
+        op.get_bind()
+        .execute(sa.text("SELECT 1 FROM measurements WHERE value IS NULL LIMIT 1"))
+        .first()
+    ):
+        raise RuntimeError(
+            "Restore a pre-upgrade backup: existing NULL readings must be preserved."
+        )
     with op.batch_alter_table("measurements") as batch:
         batch.alter_column("value", existing_type=sa.Float(), nullable=False)

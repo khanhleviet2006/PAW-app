@@ -11,9 +11,8 @@ from PIL import Image
 from pyproj import Transformer
 from scipy.optimize import lsq_linear
 from scipy.spatial.distance import cdist, pdist
-from shapely import intersects_xy
+from shapely import intersects_xy, transform
 from shapely.geometry import MultiPoint, shape
-from shapely.ops import transform
 
 
 @dataclass(frozen=True)
@@ -154,6 +153,12 @@ def raster(scope, geometry, samples, policy):
     project = Transformer.from_crs(4326, crs, always_xy=True).transform
     sites = []
     for lng, latitude, value, accuracy in samples:
+        if (
+            value is None
+            or not np.isfinite([lng, latitude, value, accuracy]).all()
+            or accuracy <= 0
+        ):
+            continue
         xy = np.array(project(lng, latitude))
         if not intersects_xy(outline, lng, latitude):
             continue
@@ -163,17 +168,22 @@ def raster(scope, geometry, samples, policy):
                 break
         else:
             sites.append((xy, accuracy, [value]))
+            if len(sites) > 128:
+                return {
+                    "sites": len(sites),
+                    "notice": "Vượt giới hạn 128 vị trí của bộ xử lý trực tuyến.",
+                }
     x = np.array([s[0] for s in sites])
     y = np.array([np.median(s[2]) for s in sites])
     n = len(x)
     unavailable = dict(sites=n, notice="Chưa đủ vị trí độc lập để nội suy.")
-    if n < policy.min_sites or n > 128:
+    if n < policy.min_sites:
         return unavailable
     hull = MultiPoint(x).convex_hull
     if hull.area <= max(1, pdist(x).max() ** 2 * 0.005):
         return unavailable
     merc = Transformer.from_crs(4326, 3857, always_xy=True).transform
-    w, s, e, t = transform(merc, outline).bounds
+    w, s, e, t = transform(outline, merc, interleaved=False).bounds
     nearest = cdist(x, x)
     np.fill_diagonal(nearest, np.inf)
     spacing = max(1, np.median(nearest.min(axis=1)) / 3 / np.cos(np.deg2rad(lat)))
@@ -185,7 +195,7 @@ def raster(scope, geometry, samples, policy):
     target = np.column_stack((px, py))
     valid = (
         intersects_xy(hull, px, py)
-        & intersects_xy(transform(project, outline), px, py)
+        & intersects_xy(transform(outline, project, interleaved=False), px, py)
         & (cdist(target, x).min(axis=1) <= policy.radius)
     )
     if not valid.any():
@@ -216,6 +226,13 @@ def raster(scope, geometry, samples, policy):
         elapsed_ms=round((perf_counter() - start) * 1000, 1),
         notice="Ước tính thăm dò" if cv is None else "Ước tính theo phiên đo",
     )
+    # A robust flag for review; steep gradients may be real, so retain these sites.
+    if n >= policy.cv_sites:
+        deviations = np.abs(y - np.median(y))
+        mad = np.median(deviations)
+        result["outlier_candidates"] = (
+            int(np.count_nonzero(deviations > 3.5 * mad / 0.67449)) if mad > 0 else None
+        )
     if var is not None:
         result["uncertainty"], result["sd_limits"] = layer(
             np.sqrt(var), [(255, 255, 255), (96, 28, 120)]

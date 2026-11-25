@@ -178,6 +178,135 @@
         }
       }
     },
+    "/v1/farms/{farm_id}/leafmap": {
+      "get": {
+        "summary": "Field",
+        "operationId": "field_v1_farms__farm_id__leafmap_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "farm_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Farm Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/farms/{farm_id}/surface": {
+      "get": {
+        "summary": "Surface",
+        "operationId": "surface_v1_farms__farm_id__surface_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "farm_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Farm Id"
+            }
+          },
+          {
+            "name": "metric",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "air_temperature",
+                "air_humidity",
+                "soil_moisture",
+                "soil_ph",
+                "solar_radiation"
+              ],
+              "type": "string",
+              "title": "Metric"
+            }
+          },
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          },
+          {
+            "name": "depth",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "maximum": 300,
+                  "minimum": 0
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Depth"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "summary": "Health",
@@ -1323,7 +1452,8 @@
                     "air_temperature",
                     "air_humidity",
                     "soil_moisture",
-                    "soil_ph"
+                    "soil_ph",
+                    "solar_radiation"
                   ],
                   "type": "string"
                 },
@@ -1892,7 +2022,8 @@
               "air_temperature",
               "air_humidity",
               "soil_moisture",
-              "soil_ph"
+              "soil_ph",
+              "solar_radiation"
             ],
             "title": "Metric"
           },
@@ -1903,6 +2034,7 @@
               "%RH",
               "%",
               "pH",
+              "W/m²",
               "raw"
             ],
             "title": "Unit"
@@ -1919,7 +2051,14 @@
             "title": "Depth Cm"
           },
           "value": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Value"
           },
           "quality": {
@@ -2171,7 +2310,8 @@
               "air_temperature",
               "air_humidity",
               "soil_moisture",
-              "soil_ph"
+              "soil_ph",
+              "solar_radiation"
             ],
             "title": "Metric"
           },
@@ -2182,6 +2322,7 @@
               "%RH",
               "%",
               "pH",
+              "W/m²",
               "raw"
             ],
             "title": "Unit"
@@ -2198,7 +2339,14 @@
             "title": "Depth Cm"
           },
           "value": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Value"
           },
           "quality": {
@@ -2333,7 +2481,8 @@
               "air_temperature",
               "air_humidity",
               "soil_moisture",
-              "soil_ph"
+              "soil_ph",
+              "solar_radiation"
             ],
             "title": "Metric"
           },
@@ -2344,6 +2493,7 @@
               "%RH",
               "%",
               "pH",
+              "W/m²",
               "raw"
             ],
             "title": "Unit"
@@ -2360,7 +2510,14 @@
             "title": "Depth Cm"
           },
           "value": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Value"
           },
           "quality": {
@@ -2700,7 +2857,14 @@
             "title": "Sensor Id"
           },
           "value": {
-            "type": "number",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
             "title": "Value"
           },
           "observed_at": {
@@ -2755,7 +2919,8 @@
               "air_temperature",
               "air_humidity",
               "soil_moisture",
-              "soil_ph"
+              "soil_ph",
+              "solar_radiation"
             ],
             "title": "Metric"
           },
@@ -2786,6 +2951,7 @@
                   "%RH",
                   "%",
                   "pH",
+                  "W/m²",
                   "raw"
                 ]
               },
@@ -2820,7 +2986,8 @@
               "air_temperature",
               "air_humidity",
               "soil_moisture",
-              "soil_ph"
+              "soil_ph",
+              "solar_radiation"
             ],
             "title": "Metric"
           },
@@ -2831,6 +2998,7 @@
               "%RH",
               "%",
               "pH",
+              "W/m²",
               "raw"
             ],
             "title": "Unit"

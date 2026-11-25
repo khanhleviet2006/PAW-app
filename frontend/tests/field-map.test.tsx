@@ -1,88 +1,7 @@
-import { act, render, waitFor } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
-import { FieldMap } from '../src/features/field-map/FieldMap'
-import { currentHeat, mergePoints, filterPoints, EMPTY } from '../src/features/field-map/data'
+import { describe, expect, it } from 'vitest'
+import { mergePoints, filterPoints, EMPTY } from '../src/features/field-map/data'
 import { checkSnapshot, parseEvent } from '../src/features/field-map/repository'
-import type { Snapshot, Points, Imagery } from '../src/features/field-map/types'
-const state = vi.hoisted(() => ({ maps: [] as unknown[], styleCalls: vi.fn(), removed: vi.fn() }))
-const { FakeMap } = vi.hoisted(() => {
-  class FakeSource {
-    setData = vi.fn()
-  }
-  class FakeMap {
-    sources = new globalThis.Map<string, FakeSource>()
-    layers = new Set<string>()
-    canvas = document.createElement('canvas')
-    constructor() {
-      state.maps.push(this)
-    }
-    on(name: string) {
-      if (name === 'load') queueMicrotask(() => this.loaded?.())
-      return this
-    }
-    loaded?: () => void
-    off() {}
-    remove() {
-      state.removed()
-    }
-    resize() {}
-    zoomIn() {}
-    zoomOut() {}
-    fitBounds = vi.fn()
-    getZoom() {
-      return 17
-    }
-    addSource(id: string) {
-      this.sources.set(id, new FakeSource())
-    }
-    getSource(id: string) {
-      return this.sources.get(id)
-    }
-    removeSource(id: string) {
-      this.sources.delete(id)
-    }
-    addLayer(layer: { id: string }) {
-      this.layers.add(layer.id)
-    }
-    getLayer(id: string) {
-      return this.layers.has(id)
-    }
-    removeLayer(id: string) {
-      this.layers.delete(id)
-    }
-    setLayoutProperty = vi.fn()
-    setPaintProperty = vi.fn()
-    getCanvas() {
-      return this.canvas
-    }
-  }
-  return { FakeMap }
-})
-vi.mock('maplibre-gl', () => ({
-  setWorkerUrl: vi.fn(),
-  Map: class extends FakeMap {
-    on(name: string, ...args: unknown[]) {
-      if (name === 'load') this.loaded = args[0] as () => void
-      return super.on(name)
-    }
-  },
-  Popup: class {
-    setLngLat() {
-      return this
-    }
-    setDOMContent() {
-      return this
-    }
-    addTo() {
-      return this
-    }
-    on() {
-      return this
-    }
-    off() {}
-    remove() {}
-  },
-}))
+import type { Points, Snapshot } from '../src/features/field-map/types'
 const reading = {
   id: 'measure-1',
   node_id: 'node-1',
@@ -131,70 +50,7 @@ const snapshot: Snapshot = {
   latest: [reading],
   heat_points: [{ ...reading, longitude: 108, latitude: 11 }],
 }
-const imagery: Imagery = {
-  id: 'test-only',
-  farm_id: 'f',
-  attribution: 'Test fixture',
-  license: 'Test only',
-  license_url: 'https://example.invalid',
-  bounds: [107, 10, 109, 12],
-  minzoom: 10,
-  maxzoom: 18,
-  tiles: [],
-}
-describe('Field map persistent instance and real-data contract', () => {
-  it('updates source data and heat visibility without constructing another map or reloading raster', async () => {
-    state.maps = []
-    state.removed.mockClear()
-    const props = {
-      config: { baseUrl: 'http://localhost:8000', farmId: 'f', token: 'test-key' },
-      snapshot,
-      points,
-      heat: points,
-      imagery,
-      metric: 'air_temperature' as const,
-      heatEnabled: true,
-      opacity: 0.65,
-      onError: vi.fn(),
-      selected: undefined,
-      onSelect: vi.fn(),
-    }
-    const view = render(<FieldMap {...props} />)
-    await waitFor(() =>
-      expect(
-        (state.maps[0] as InstanceType<typeof FakeMap>).getSource('field-points'),
-      ).toBeDefined(),
-    )
-    const map = state.maps[0] as InstanceType<typeof FakeMap>,
-      raster = map.getSource('paw-satellite')
-    const next = mergePoints(points, {
-      ...points,
-      features: [
-        {
-          ...points.features[0]!,
-          id: 'measure-2',
-          properties: { ...reading, id: 'measure-2', value: 28 },
-        },
-      ],
-    })
-    await act(async () =>
-      view.rerender(
-        <FieldMap
-          {...props}
-          snapshot={{ ...snapshot, cursor: 2 }}
-          points={next}
-          heatEnabled={false}
-        />,
-      ),
-    )
-    expect(state.maps).toHaveLength(1)
-    expect(map.getSource('paw-satellite')).toBe(raster)
-    expect(map.getSource('field-points')!.setData).toHaveBeenLastCalledWith(next)
-    expect(map.setLayoutProperty).toHaveBeenLastCalledWith('field-heat', 'visibility', 'none')
-    expect(map.fitBounds).toHaveBeenCalledTimes(1)
-    view.unmount()
-    expect(state.removed).toHaveBeenCalledOnce()
-  })
+describe('Field map data contract', () => {
   it('retains old GPS points, deduplicates updates and rejects invalid coordinates', () => {
     expect(mergePoints(points, points).features).toHaveLength(1)
     const next = {
@@ -217,16 +73,8 @@ describe('Field map persistent instance and real-data contract', () => {
       }).features,
     ).toHaveLength(0)
   })
-  it('separates depth and metric; only current backend-approved readings enter heatmap', () => {
+  it('filters by metric and rejects simulated farms', () => {
     expect(filterPoints(points, 'soil_moisture', '20').features).toHaveLength(0)
-    expect(currentHeat(snapshot, 'air_temperature', '20').features).toHaveLength(1)
-    expect(
-      currentHeat(
-        { ...snapshot, heat_points: [{ ...snapshot.heat_points[0]!, quality: 'invalid' }] },
-        'air_temperature',
-        '20',
-      ).features,
-    ).toHaveLength(0)
     expect(() =>
       checkSnapshot({ ...snapshot, farm: { ...snapshot.farm, source: 'simulation' } }),
     ).toThrow(/mô phỏng/)

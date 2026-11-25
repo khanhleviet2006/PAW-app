@@ -1,9 +1,11 @@
 import type { Feature, FeatureCollection, Point, Polygon } from 'geojson'
-import type { Metric } from '../../types/domain'
+import type { Metric as DemoMetric } from '../../types/domain'
+export type Metric = DemoMetric | 'solar_radiation'
 export type Connection = { baseUrl: string; farmId: string; token?: string }
 export type Reading = {
   id: string
   node_id: string
+  session_id?: string | null
   sensor_id: string
   deployment_id: string | null
   plot_id: string | null
@@ -28,7 +30,12 @@ export type Snapshot = {
   schema_version: string
   cursor: number
   reference_time: string
-  farm: { id: string; name: string; source: string; thresholds: Record<Metric, [number, number]> }
+  farm: {
+    id: string
+    name: string
+    source: string
+    thresholds: Partial<Record<Metric, [number, number]>>
+  }
   plots: { id: string; name: string; geometry: Polygon }[]
   nodes: {
     id: string

@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import json
+import logging
 import secrets
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -12,14 +13,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError, OperationalError, TimeoutError as PoolTimeout
+from sqlalchemy.exc import IntegrityError, OperationalError, ProgrammingError
+from sqlalchemy.exc import TimeoutError as PoolTimeout
 
 from . import models as m
 from .auth import Principal, authenticate, deployment_viewer, digest
 from .config import Settings
-from .db import database, now, utc
+from .db import database, now, schema_current, utc
 from .field_map import field_payload, point_collection
 from .imagery import router as imagery_router
+from .maps import assets as map_assets
+from .maps import router as map_router
 from .responses import AckOut, DeploymentOut, HistoryOut, SnapshotOut
 from .schemas import (
     DEFAULT_THRESHOLDS,
@@ -51,7 +55,7 @@ from .services import (
 
 def create_app(settings: Settings | None = None) -> FastAPI:
     config = settings or Settings()
-    engine, sessions = database(config.database_url)
+    engine, sessions = database(config)
 
     @asynccontextmanager
     async def lifespan(_):
@@ -65,6 +69,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         description="Node di động GPS, lần đặt node, số đo và SSE. API mới; không thay thế firmware ingest/ACK cũ khi chưa xác minh.",
     )
     app.include_router(imagery_router)
+    app.include_router(map_router)
+    app.mount("/map-assets", StaticFiles(directory=map_assets), name="map-assets")
     app.state.settings, app.state.sessions, app.state.engine = config, sessions, engine
     app.state.clock = now
     app.add_middleware(
@@ -86,7 +92,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.exception_handler(PoolTimeout)
     @app.exception_handler(OperationalError)
-    async def unavailable(_, __):
+    async def unavailable(_, error):
+        logging.getLogger(__name__).warning(
+            "Database unavailable: %s, SQLSTATE=%s",
+            type(error).__name__,
+            getattr(getattr(error, "orig", None), "sqlstate", None),
+        )
         return JSONResponse(
             status_code=503,
             content={
@@ -127,8 +138,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return {"farm_id": viewer.farm_id}
 
     @app.get("/ready")
-    def ready(session: DB):
-        session.execute(select(m.Farm.id).limit(1))
+    def ready():
+        with engine.connect() as conn:
+            try:
+                if conn.dialect.name == "postgresql" and not schema_current(conn):
+                    raise HTTPException(503, "Phiên bản schema chưa sẵn sàng.")
+                conn.execute(select(m.Farm.id).limit(1))
+            except ProgrammingError as exc:
+                code = getattr(exc.orig, "sqlstate", None)
+                if code not in {"42P01", "42501", "3F000"}:
+                    raise
+                logging.getLogger(__name__).error("Database readiness SQLSTATE=%s", code)
+                raise HTTPException(503, "Chưa truy cập được schema PAW.") from exc
         return {"status": "ready"}
 
     @app.post("/v1/farms", status_code=201)
@@ -403,7 +424,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         plot_id: str | None = None,
         deployment_id: str | None = None,
         sensor_id: str | None = None,
-        metric: Literal["air_temperature", "air_humidity", "soil_moisture", "soil_ph"]
+        metric: Literal[
+            "air_temperature", "air_humidity", "soil_moisture", "soil_ph", "solar_radiation"
+        ]
         | None = None,
         depth_cm: float | None = Query(None, ge=0, le=300),
         phase: Literal["ALL", "PRE_PAW", "UNKNOWN"] = "ALL",

@@ -6,7 +6,13 @@ from shapely.geometry import shape
 
 Id = Annotated[str, Field(pattern=r"^[A-Za-z0-9][A-Za-z0-9._:-]{0,79}$")]
 Metric = Literal["air_temperature", "air_humidity", "soil_moisture", "soil_ph", "solar_radiation"]
-UNITS = {"air_temperature": "°C", "air_humidity": "%RH", "soil_moisture": "%", "soil_ph": "pH", "solar_radiation": "W/m²"}
+UNITS = {
+    "air_temperature": "°C",
+    "air_humidity": "%RH",
+    "soil_moisture": "%",
+    "soil_ph": "pH",
+    "solar_radiation": "W/m²",
+}
 BOUNDS = {
     "air_temperature": (-50, 80),
     "air_humidity": (0, 100),

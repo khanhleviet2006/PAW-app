@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, Layers, MapPin, Radio, SlidersHorizontal } from 'lucide-react'
+import { ChevronDown, MapPin, Radio, SlidersHorizontal } from 'lucide-react'
 import { FieldMap } from '../features/field-map/FieldMap'
 import {
   createFieldRepository,
@@ -8,16 +8,14 @@ import {
 } from '../features/field-map/repository'
 import {
   EMPTY,
-  currentHeat,
   filterPoints,
   mergePoints,
   selectPoint,
   displayReading,
 } from '../features/field-map/data'
-import type { Connection, Imagery, Points, Snapshot } from '../features/field-map/types'
+import type { Connection, Imagery, Metric, Points, Snapshot } from '../features/field-map/types'
 import { metricConfig } from '../features/environmental-layers/config'
 import { metrics } from '../types/domain'
-import type { Metric } from '../types/domain'
 export function FieldMapPage() {
   const [connection, setConnection] = useState<Connection>(),
     [snapshot, setSnapshot] = useState<Snapshot>(),
@@ -27,6 +25,7 @@ export function FieldMapPage() {
     [status, setStatus] = useState('Đang kết nối khu quan trắc…'),
     [error, setError] = useState(''),
     [metric, setMetric] = useState<Metric>('air_temperature'),
+    [showPoints, setShowPoints] = useState(true),
     [depth, setDepth] = useState('20'),
     [heatEnabled, setHeatEnabled] = useState(true),
     [opacity, setOpacity] = useState(0.65),
@@ -103,10 +102,6 @@ export function FieldMapPage() {
     return () => controller.abort()
   }, [])
   const visible = useMemo(() => filterPoints(points, metric, depth), [points, metric, depth])
-  const heat = useMemo(
-    () => (snapshot ? currentHeat(snapshot, metric, depth) : EMPTY),
-    [snapshot, metric, depth],
-  )
   const selectedPoint = useMemo(
     () => (selected ? selectPoint(points, selected) : undefined),
     [points, selected],
@@ -172,12 +167,12 @@ export function FieldMapPage() {
             config={connection}
             snapshot={snapshot}
             points={visible}
-            heat={heat}
+            showPoints={showPoints}
+            depth={depth}
             imagery={imagery}
             metric={metric}
             heatEnabled={heatEnabled}
             opacity={opacity}
-            onError={setError}
             selected={selectedPoint}
             onSelect={pick}
           />
@@ -211,9 +206,9 @@ export function FieldMapPage() {
                 <label>
                   Thông số
                   <select value={metric} onChange={(e) => chooseMetric(e.target.value as Metric)}>
-                    {metrics.map((m) => (
+                    {([...metrics, 'solar_radiation'] as Metric[]).map((m) => (
                       <option key={m} value={m}>
-                        {metricConfig[m].fullLabel}
+                        {m === 'solar_radiation' ? 'Bức xạ mặt trời' : metricConfig[m].fullLabel}
                       </option>
                     ))}
                   </select>
@@ -256,15 +251,16 @@ export function FieldMapPage() {
                     onChange={(e) => setOpacity(Number(e.target.value))}
                   />
                 </label>
-                <p>
-                  Heatmap thể hiện cường độ tương đối của các số đo hiện tại hợp lệ; không phải số
-                  đo tại mọi vị trí.
-                </p>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={showPoints}
+                    onChange={(e) => setShowPoints(e.target.checked)}
+                  />
+                  Điểm đo lịch sử
+                </label>
               </div>
             </details>
-            <span className="field-legend">
-              <Layers size={14} /> Thấp <span /> Cao · {metricConfig[metric].label}
-            </span>
           </>
         )}
       </div>

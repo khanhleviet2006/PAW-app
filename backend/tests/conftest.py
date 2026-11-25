@@ -3,6 +3,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy.engine import make_url
 
 from app.config import Settings
 from app.db import Base
@@ -14,7 +15,7 @@ ADMIN = "test-only-admin-key-at-least-32-characters"
 @pytest.fixture
 def env(tmp_path):
     url = os.environ.get("TEST_DATABASE_URL", f"sqlite:///{tmp_path}/test.db")
-    if not url.startswith("sqlite") and "paw_test" not in url.rsplit("/", 1)[-1]:
+    if not url.startswith("sqlite") and "paw_test" not in (make_url(url).database or ""):
         pytest.fail(
             "PostgreSQL test database name must contain paw_test; no destructive test on real DB"
         )

@@ -3,7 +3,7 @@
 import json
 import os
 import sys
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -80,7 +80,17 @@ for project in ["desktop-1920", "desktop-1366", "mobile-390", "mobile-360"]:
         role: post(f"/v1/farms/{farm}/keys", {"role": role})["token"]
         for role in ["viewer", "operator", "gateway"]
     }
-    stamp = datetime.now(UTC).isoformat()
+    start = datetime.now(UTC)
+    post(
+        f"/v1/farms/{farm}/measurement-sessions",
+        {
+            "id": farm + "-pre",
+            "plot_id": farm + "-plot",
+            "started_at": start.isoformat(),
+            "ended_at": (start + timedelta(minutes=20)).isoformat(),
+        },
+    )
+    stamp = start.isoformat()
     ack = post(
         "/v1/gateway/ingest",
         {
@@ -111,6 +121,7 @@ for project in ["desktop-1920", "desktop-1366", "mobile-390", "mobile-360"]:
             "readings": [
                 {
                     "sensor_id": sensor,
+                    "session_id": farm + "-pre",
                     "value": 26,
                     "observed_at": stamp,
                     "deployment_id": deployment["id"],

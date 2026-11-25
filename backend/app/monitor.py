@@ -29,7 +29,7 @@ def main():
     if args.interval < 1:
         parser.error("interval >= 1 giây")
     settings = Settings()
-    engine, sessions = database(settings.database_url)
+    engine, sessions = database(settings)
     try:
         while True:
             tick(sessions, settings, now())
