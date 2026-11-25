@@ -51,3 +51,23 @@ M. VOLTZ, R. WEBSTER (1990). Abstract. Hàm lượng sét tầng mặt ở Sandf
 ## Comparative analysis of interpolation methods in the middle Ebro Valley (Spain): application to annual precipitation and temperature
 
 Sergio M. Vicente-Serrano, M. Ángel Saz-Sánchez, José M. Cuadrat (2003). 99 trạm mưa, 61 trạm nhiệt. Chuỗi nhiệt >15 năm. Tọa độ UTM 30N. IDW, spline, kriging, hồi quy theo biến địa lý/địa hình và các phương pháp kết hợp. Chia trạm ngẫu nhiên 70/30. Bảng 7, nhiệt độ trung bình năm: RMSE (°C) IDW p=2 0.56, OK 0.60, hồi quy 0.58. Bias tương ứng −0.32, −0.28, −0.06 °C. Lựa chọn thay đổi theo bias và RMSE. Kiểm tra DEM theo từng phiên đo PAW; trung bình năm khó đại diện cho 20 phút. [DOI](https://doi.org/10.3354/cr024161)
+
+## Spatial interpolation methods applied in the environmental sciences: A review
+
+Jin Li, Andrew D. Heap (2014). Abstract. Bài tổng quan phương pháp môi trường. So sánh 25 phương pháp. Xét thiết kế lấy mẫu, phân bố điểm, chất lượng và tương quan giữa biến chính/phụ. Không gán một RMSE chung cho các bộ dữ liệu. Dùng tiêu chí chất lượng và vùng phủ trước khi so sánh sai số CV. Hiệu quả theo biến và tập mẫu. [DOI](https://doi.org/10.1016/j.envsoft.2013.12.008)
+
+## Within-field extrapolation away from a soil moisture probe using freely available satellite imagery and weather data
+
+R. G. V. Bramley, E. M. Perry, J. Richetti, A. F. Colaço, D. J. Mowat, C. E. M. Ratcliff, R. A. Lawes (2024). Toàn văn. Hai vụ ở Nam và Tây Australia. Ba đầu dò ở SA, một ở WA. Tại SA, đối chiếu lấy mẫu 21 vị trí trong hai ngày thuộc hai năm. Hồi quy riêng theo tầng và vùng với NDVI tích lũy, mưa ròng tích lũy, growing degree days. R² hiệu chỉnh khoảng 0.4–0.7 cho dự báo nêu trong tóm tắt; không đồng nhất với R² khi fit tại đầu dò. Khác biệt theo độ sâu có thể lớn hơn khác biệt giữa vùng cùng ngày. PAW cần phân tầng đầu dò và kiểm định ngoại vùng. [DOI](https://doi.org/10.1007/s11119-024-10138-9)
+
+## Soil moisture mapping using radio signal strength and gaussian process regression
+
+Hongjun Yu, Erik Muller, Alex McBratney, Salah Sukkarieh (2026). Abstract. Mô phỏng nhiều mức dị thể và nhiễu; không có tập xác minh thực địa. GPR với RSS tích hợp dọc đường truyền RF, chọn điểm thích ứng theo độ bất định. Tóm tắt báo giảm sai số so với chọn ngẫu nhiên/GPR thường khi ít mẫu; số điểm và RMSE cụ thể CXM. PAW đo độ ẩm tại đầu dò. RSS LoRa không thể được chuyển thành độ ẩm hay dùng như quan sát điểm bằng các kết quả này. [DOI](https://doi.org/10.1007/s11119-026-10393-y)
+
+## Spatialization Study of Monthly Global Solar Radiation in Sparse Observation Area Based on Environmental Similarity and Spatial Proximity
+
+Mao-Fen Li, Peng-Tao Guo, A-Xing Zhu, Xuan Yu (2026). Abstract. Tổng bức xạ tháng, 11 trạm ở miền nhiệt đới Trung Quốc, năm 2015. ES-SP, OK và đa thức cục bộ. Random forest chọn biến địa hình và khí tượng theo tháng. LOOCV theo trạm, so sánh Wilcoxon. ES-SP đạt RMSE 37.23 MJ/m² trong tháng 12 và MAPE 4.34% trong tháng 8. Thang thời gian tháng và tổng năng lượng khác với bức xạ W/m² trung bình 20 phút của PAW. Cần đo bóng che và mây cùng đợt trước khi đánh giá drift. [DOI](https://doi.org/10.3390/atmos17020195)
+
+## Phạm vi truy xuất
+
+Đợt bổ sung ngày 26/11/2026 tìm theo các cụm *sparse soil moisture sensors*, *regression kriging wireless sensor network*, *field-scale GPR* và *solar radiation spatial interpolation complex terrain*. Đối chiếu trang tạp chí trên ScienceDirect, SpringerLink, IEEE Xplore, PLOS, MDPI và kho lưu trữ học thuật. Tìm kiếm giới hạn miền Google Scholar không cung cấp thêm bản đủ thông tin trích xuất. Đơn vị đếm là DOI duy nhất: 40 công trình, gồm 4 công trình đã đối chiếu toàn văn, 11 ở mức abstract và 25 ở mức metadata. 16 mục được phân tích riêng ở trên. Công trình chỉ có metadata được giữ để truy vết, không dùng cho so sánh sai số định lượng.
