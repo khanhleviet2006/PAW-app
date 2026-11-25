@@ -91,3 +91,58 @@ def test_connection_password_is_encoded_once():
     )
     assert make_url(cfg.database_url).password == "a@:b%25"
     assert make_url(cfg.database_url).drivername == "postgresql+psycopg"
+
+
+def test_surface_scopes_session_depth_source_and_auth(env):
+    from datetime import timedelta
+
+    start = env["current"][0]
+    with env["app"].state.sessions.begin() as db:
+        db.get(m.Farm, "farm").source = "sensor"
+    env["post"](
+        "/v1/farms/farm/measurement-sessions",
+        {
+            "id": "pre",
+            "plot_id": "A",
+            "started_at": start.isoformat(),
+            "ended_at": (start + timedelta(minutes=20)).isoformat(),
+        },
+    )
+    for i, (lon, lat, _, _) in enumerate(SAMPLES):
+        packet = env["packet"](longitude=lon)
+        packet["source"] = "sensor"
+        packet["position"]["latitude"] = lat
+        gps = env["send"](packet)
+        placement = env["post"](
+            "/v1/nodes/node/deployments",
+            {"position_id": gps["position_id"]},
+            env["headers"]["operator"],
+        )
+        env["advance"](121)
+        readings = [
+            env["reading"](placement, "soil20", 20 + i, session_id="pre"),
+            env["reading"](placement, "soil40", 80 + i, session_id="pre"),
+            env["reading"](placement, "soil20", 100),
+        ]  # UNKNOWN phase
+        payload = env["packet"](readings, position=False)
+        payload["source"] = "sensor"
+        env["send"](payload)
+    path = "/v1/farms/farm/surface"
+    args = dict(session_id="pre", metric="soil_moisture")
+
+    def get(depth, **extra):
+        return (
+            env["client"]
+            .get(path, params={**args, "depth": depth, **extra}, headers=env["headers"]["viewer"])
+            .json()
+        )
+
+    shallow, deep = get(20), get(40)
+    assert shallow["sites"] == deep["sites"] == 3
+    assert 20 <= shallow["limits"][0] <= shallow["limits"][1] <= 22
+    assert 80 <= deep["limits"][0] <= deep["limits"][1] <= 82
+    assert shallow["time"] == env["current"][0].isoformat()
+    assert "image" not in get(40, session_id="unknown")
+    assert (
+        env["client"].get(path, params=args, headers=env["headers"]["gateway"]).status_code == 403
+    )

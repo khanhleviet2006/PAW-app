@@ -164,6 +164,7 @@ numpy==2.5.4
     #   leafmap
     #   matplotlib
     #   pandas
+    #   paw-backend
     #   pyogrio
     #   rasterio
     #   scipy
