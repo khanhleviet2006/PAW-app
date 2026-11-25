@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError, OperationalError
+from sqlalchemy.exc import IntegrityError, OperationalError, TimeoutError as PoolTimeout
 
 from . import models as m
 from .auth import Principal, authenticate, deployment_viewer, digest
@@ -84,6 +84,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             },
         )
 
+    @app.exception_handler(PoolTimeout)
     @app.exception_handler(OperationalError)
     async def unavailable(_, __):
         return JSONResponse(

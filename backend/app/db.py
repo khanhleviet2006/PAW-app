@@ -32,6 +32,9 @@ def database(url: str):
         kwargs["connect_args"] = {"check_same_thread": False, "timeout": 15}
         if ":memory:" in url:
             kwargs["poolclass"] = StaticPool
+    else:
+        kwargs.update(pool_size=4, max_overflow=2, pool_timeout=8, pool_recycle=1800,
+                      connect_args={"connect_timeout": 5})
     engine = create_engine(url, pool_pre_ping=True, **kwargs)
     if url.startswith("sqlite"):
 
