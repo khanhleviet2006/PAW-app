@@ -1,0 +1,13 @@
+.git
+.env
+.env.*
+*.secrets.json
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+*.db
+*.db-*
+.coverage
+htmlcov
+gateway-outbox

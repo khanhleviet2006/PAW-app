@@ -1,0 +1,54 @@
+# Local PostgreSQL stack; does not publish PostgreSQL on the host.
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: paw
+      POSTGRES_DB: paw
+      POSTGRES_PASSWORD: ${PAW_POSTGRES_PASSWORD:?Run python scripts/setup_env.py first}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U paw -d paw"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  migrate:
+    build: .
+    environment: &api_env
+      PAW_DATABASE_URL: postgresql+psycopg://paw:${PAW_POSTGRES_PASSWORD}@db:5432/paw
+      PAW_ADMIN_TOKEN: ${PAW_ADMIN_TOKEN:?Run python scripts/setup_env.py first}
+      PAW_STABILIZATION_SECONDS: ${PAW_STABILIZATION_SECONDS:-120}
+      PAW_GPS_MAX_ACCURACY_M: ${PAW_GPS_MAX_ACCURACY_M:-25}
+      PAW_GPS_MAX_AGE_SECONDS: ${PAW_GPS_MAX_AGE_SECONDS:-300}
+      PAW_MOVEMENT_THRESHOLD_M: ${PAW_MOVEMENT_THRESHOLD_M:-15}
+      PAW_SSE_POLL_SECONDS: ${PAW_SSE_POLL_SECONDS:-1}
+      PAW_OFFLINE_AFTER_SECONDS: ${PAW_OFFLINE_AFTER_SECONDS:-1800}
+      PAW_CORS_ORIGINS: '${PAW_CORS_ORIGINS:-["http://localhost:5173","http://127.0.0.1:5173"]}'
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
+    restart: "no"
+  api:
+    build: .
+    environment: *api_env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+  monitor:
+    build: .
+    environment: *api_env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: ["python", "-m", "app.monitor", "--interval", "15"]
+volumes:
+  postgres_data:

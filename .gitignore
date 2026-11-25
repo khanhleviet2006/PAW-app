@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+*.secrets.json
+*.pem
+*.key
+node_modules/
+dist/
+.venv/
+*.db
+*.db-*
+*.mbtiles
+*.tif
+*.tiff

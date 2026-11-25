@@ -1,0 +1,9 @@
+# Optional overlay after compose.yaml. Build frontend and import licensed images first.
+services:
+  api:
+    environment:
+      PAW_FRONTEND_DIST: /frontend
+      PAW_IMAGERY_DIR: /imagery
+    volumes:
+      - ${PAW_FRONTEND_BUILD_DIR:?Set path to built Vite dist}:/frontend:ro
+      - ${PAW_IMAGERY_HOST_DIR:?Set path to imported MBTiles directory}:/imagery:ro
